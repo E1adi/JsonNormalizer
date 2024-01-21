@@ -1,0 +1,52 @@
+{
+  "users": [
+    {
+      "orders": [],
+      "name": "Jane Smith",
+      "email": "janesmith@example.com",
+      "profile": {
+        "city": "London",
+        "age": 25,
+        "interests": [ "reading", "photography", "art" ]
+      },
+      "id": 67890
+    },
+    {
+      "email": "johndoe@example.com",
+      "name": "John Doe",
+      "id": 12345,
+      "profile": {
+        "interests": ["music", "coding", "travel"],
+        "city": "New York",
+        "age": 30
+      },
+      "orders": [
+        {
+          "items": [
+            {"productId": 8, "quantity": 3}
+          ],
+          "total": 27.50,
+          "orderId": 45678
+        },
+        {
+          "orderId": 98765,
+          "total": 49.99,
+          "items": [
+            {"quantity": 1, "productId": 5},
+            {"productId": 1, "quantity": 2}
+          ]
+        }
+      ]
+    }
+  ],
+  "products": {
+    "8": { "price": 9.17, "name": "Book"},
+    "1": { "name": "T-shirt", "price": 19.99 },
+    "5": { "price": 30.00, "name": "Headphones"}
+  },
+  "settings": {
+    "notifications": true,
+    "language": "en-US",
+    "theme": "dark"
+  }
+}
