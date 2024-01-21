@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+    <PropertyGroup>
+        <Product>JsonNormalize</Product>
+        <RootNamespace>JsonNormalize</RootNamespace>
+        <VersionPrefix>0.0.1</VersionPrefix>
+        <Authors>Elad Israel</Authors>
+    </PropertyGroup>
+    <PropertyGroup>
+        <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+        <RuntimeIdentifiers>win10-x64;linux-x64;linux-musl-x64</RuntimeIdentifiers>
+        <LangVersion>latest</LangVersion>
+        <OutputPath>bin\$(Configuration)</OutputPath>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+</Project>
