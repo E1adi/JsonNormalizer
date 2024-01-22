@@ -3,8 +3,19 @@
     <PropertyGroup>
         <Product>JsonNormalize</Product>
         <RootNamespace>JsonNormalize</RootNamespace>
-        <VersionPrefix>0.0.1</VersionPrefix>
+        <VersionPrefix>0.1.0</VersionPrefix>
         <Authors>Elad Israel</Authors>
+        <PackageProjectUrl>https://github.com/E1adi/JsonNormalizer</PackageProjectUrl>
+        <PackageTags>Json Normalizer Newtonsoft Equals</PackageTags>
+        <Description>
+            JSON data representation has some limitations that in some cases might make it difficult to compare JSON documents.
+            For once, the order of the properties in the JSON document is not guaranteed.
+            In addition to that, since the only collection representation of JSON is an array, you might be using it to 
+            represent a set of objects which is order agnostic. 
+            By Normalizing JSON objects, you can overcome these limitations and compare JSON documents in a more robust way.
+            With the correct Normalization settings, you can even compare the string representation of the JSON documents 
+            for equality (Just for the fun of it ofc🤓).
+        </Description>
     </PropertyGroup>
     <PropertyGroup>
         <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
