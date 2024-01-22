@@ -1,28 +1,21 @@
+using System.Diagnostics;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace JsonNormalize.Logic;
 
 public static class Utils
 {
-    public static JObject ToJObject(this IEnumerable<KeyValuePair<string, JToken>> source)
+    public static IEnumerable<T> Do<T>(this IEnumerable<T> source, Action<T> action)
     {
-        var obj = new JObject();
-        foreach (var prop in source)
+        foreach (var item in source)
         {
-            obj[prop.Key] = prop.Value;
+            action(item);
+            yield return item;
         }
-
-        return obj;
     }
     
-    public static JArray ToJArray(this IEnumerable<JToken> source)
-    {
-        var arr = new JArray();
-        foreach (var prop in source)
-        {
-            arr.Add(prop);
-        }
-
-        return arr;
-    }
+    public static IEnumerable<TSource> OrderByIf<TSource, TKey>(
+        this IEnumerable<TSource> source, bool condition, Func<TSource, TKey> comparer) =>
+        condition ? source.OrderBy(comparer) : source;
 }
