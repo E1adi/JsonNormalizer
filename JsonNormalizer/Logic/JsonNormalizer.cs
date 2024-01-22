@@ -30,18 +30,21 @@ public static class JsonNormalizer
     
     private static JArray NormalizeArray(JArray arr, NormalizerOptions opt, string path)
     {
-        var concurrentDict = new ConcurrentDictionary<int, JToken>();
-        Parallel.ForEach(arr.Select((t, i) => (i, t)), tpl => 
-        {
-            var (index, tok) = tpl;
-            concurrentDict[index] = NormalizeReq(tok, opt, $"{path}[{index}]");
-        });
-	
-        var ordered = ShouldKeepOrder(path, opt) ?
-            concurrentDict.OrderBy(kvp => kvp.Key).Select(kvp => kvp.Value) :
-            concurrentDict.Select(kvp => kvp.Value).OrderBy(t =>  opt.ArrayOptions.ArrayItemsEqualityComparer.GetHashCode(t)); 
+        var items = arr
+            .Select((t, i) => (index: i, item: t))
+            .OrderByIf(!ShouldKeepOrder(path, opt),
+                tpl => opt.ArrayOptions.ArrayItemsEqualityComparer.GetHashCode(tpl.item))
+            .ToList();
+            
+        Parallel.ForEach(items, tpl => NormalizeReq(tpl.item, opt, $"{path}[{tpl.index}]"));
         
-        return ordered.ToJArray();
+        foreach (var (index, item) in items)
+        {
+            item.Remove();
+            arr.Add(item);
+        }
+        
+        return arr;
 
         bool ShouldKeepOrder(string path, NormalizerOptions opt)
         {
@@ -57,14 +60,19 @@ public static class JsonNormalizer
     
     private static JObject NormalizeObject(JObject obj, NormalizerOptions opt, string path)
     {
-        var normalized = new ConcurrentDictionary<string, JToken>();
-        Parallel.ForEach(obj.Properties().OrderBy(p => p.Name), prop =>
-        {
-            normalized[prop.Name] = NormalizeReq(prop.Value, opt, $"{path}.{prop.Name}");
-        });
+        var props = obj.Properties()
+            .AsEnumerable()
+            .OrderByIf(opt.SortObjectsProperties, p => p.Name)
+            .ToList();
+
+        Parallel.ForEach(props, prop => NormalizeReq(prop.Value, opt, $"{path}.{prop.Name}"));
         
-        return opt.SortObjectsProperties ? 
-            normalized.OrderBy(kvp => kvp.Key).ToJObject() :
-            normalized.ToJObject();
+        foreach (var prop in props)
+        {
+            prop.Remove();
+            obj.Add(prop);
+        }
+
+        return obj;
     }
 }
