@@ -13,8 +13,8 @@ public class NormalizerOptionsTests
         {
             ArrayOptions = new ArrayNormalizationOptions
             {
-                OrderedArrayPaths = new HashSet<string> { "a", "b" },
-                UnOrdedArrayPaths = new HashSet<string> { "c", "d" }
+                OrderedCollectionPaths = new HashSet<string> { "a", "b" },
+                UnorderedCollectionPaths = new HashSet<string> { "c", "d" }
             }
         };
         
@@ -33,8 +33,8 @@ public class NormalizerOptionsTests
         {
             ArrayOptions = new ArrayNormalizationOptions
             {
-                OrderedArrayPaths = new HashSet<string> { "a", "b" },
-                UnOrdedArrayPaths = new HashSet<string> { "b", "c" }
+                OrderedCollectionPaths = new HashSet<string> { "a", "b" },
+                UnorderedCollectionPaths = new HashSet<string> { "b", "c" }
             }
         };
         
