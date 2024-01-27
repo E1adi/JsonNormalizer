@@ -11,8 +11,8 @@ public class ArrayNormalizationOptionsTests
         // Arrange
         var sut = new ArrayNormalizationOptions
         {
-            OrderedArrayPaths = new HashSet<string> { "a", "b" },
-            UnOrdedArrayPaths = new HashSet<string> { "b", "c" }
+            OrderedCollectionPaths = new HashSet<string> { "a", "b" },
+            UnorderedCollectionPaths = new HashSet<string> { "b", "c" }
         };
         
         // Act
@@ -28,8 +28,8 @@ public class ArrayNormalizationOptionsTests
         // Arrange
         var sut = new ArrayNormalizationOptions
         {
-            OrderedArrayPaths = new HashSet<string> { "a", "b" },
-            UnOrdedArrayPaths = new HashSet<string> { "c", "d" }
+            OrderedCollectionPaths = new HashSet<string> { "a", "b" },
+            UnorderedCollectionPaths = new HashSet<string> { "c", "d" }
         };
 
         // Act
@@ -45,8 +45,8 @@ public class ArrayNormalizationOptionsTests
         // Arrange
         var sut = new ArrayNormalizationOptions
         {
-            OrderedArrayPaths = new HashSet<string>(),
-            UnOrdedArrayPaths = new HashSet<string>()
+            OrderedCollectionPaths = new HashSet<string>(),
+            UnorderedCollectionPaths = new HashSet<string>()
         };
 
         // Act
@@ -57,12 +57,12 @@ public class ArrayNormalizationOptionsTests
     }
     
     [Test]
-    public void Validate_WhenUnorderedArrayPathsAreForcedNull_ReturnsFalse()
+    public void Validate_WhenUnorderedCollectionPathsAreForcedNull_ReturnsFalse()
     {
         // Arrange
         var sut = new ArrayNormalizationOptions
         {
-            UnOrdedArrayPaths = null
+            UnorderedCollectionPaths = null
         };
 
         // Act
@@ -73,12 +73,12 @@ public class ArrayNormalizationOptionsTests
     }
     
     [Test]
-    public void Validate_WhenOrderedArrayPathsAreForcedNull_ReturnsFalse()
+    public void Validate_WhenOrderedCollectionPathsAreForcedNull_ReturnsFalse()
     {
         // Arrange
         var sut = new ArrayNormalizationOptions
         {
-            OrderedArrayPaths = null
+            OrderedCollectionPaths = null
         };
 
         // Act
@@ -111,8 +111,8 @@ public class ArrayNormalizationOptionsTests
         var sut = new ArrayNormalizationOptions
         {
             ArrayItemsEqualityComparer = null,
-            OrderedArrayPaths = null,
-            UnOrdedArrayPaths = null
+            OrderedCollectionPaths = null,
+            UnorderedCollectionPaths = null
         };
 
         // Act

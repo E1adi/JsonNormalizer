@@ -1,5 +1,6 @@
 ﻿using JsonNormalize.Logic;
 using JsonNormalize.Models;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace JsonNormalize.UnitTests.Logic;
@@ -8,29 +9,35 @@ namespace JsonNormalize.UnitTests.Logic;
 public class JsonNormalizerTests
 {
     [Test]
+    public void Normalize_WhenOptionsIsNull_ThrowsArgumentNullException()
+    {
+        // Act
+        void Act() => JsonNormalizer.Normalize(new JObject(), null);
+
+        // Assert
+        Assert.That(Act, Throws.ArgumentNullException);
+    }
+    
+    [Test]
     public void Normalize_WhenOptionsAreInvalid_ThrowsArgumentException()
     {
         // Arrange
         var opt = new NormalizerOptions
         {
-            ArrayOptions = new ArrayNormalizationOptions
-            {
-                UnOrdedArrayPaths = null
-            }
+            ArrayOptions = new ArrayNormalizationOptions { UnorderedCollectionPaths = null }
         };
-        
+
         // Act
         void Act() => JsonNormalizer.Normalize(new JObject(), opt);
-        
+
         // Assert
         Assert.That(Act, Throws.ArgumentException);
     }
-    
-    [Test]
-    public void Normalize_ArrayOrderIsUnimportant_JsonsWouldBeEqual()
+
+    [TestCaseSource(nameof(GetBothSynchronousAndAsynchronousOptions))]
+    public void Normalize_CollectionOrderIsUnimportant_JsonsWouldBeEqual(NormalizerOptions opt)
     {
         // Arrange
-        var opt = new NormalizerOptions();
         var arr1 = new[] { 3, 2, 1 };
         var arr2 = new[] { 4, 5, 6 };
         var json1 = new JObject
@@ -43,27 +50,21 @@ public class JsonNormalizerTests
             ["a"] = JArray.FromObject(arr1.Reverse()),
             ["b"] = JArray.FromObject(arr2.Reverse())
         };
-        
+
         // Act
-        var normalized1 = JsonNormalizer.Normalize(json1, opt);
-        var normalized2 = JsonNormalizer.Normalize(json2, opt);
-        
+        JsonNormalizer.Normalize(json1, opt);
+        JsonNormalizer.Normalize(json2, opt);
+
         // Assert
-        Assert.That(normalized1, Is.EqualTo(normalized2));
+        Assert.That(json1, Is.EqualTo(json2));
     }
-    
-    [Test]
-    public void Normalize_ArrayOrderIsImportant_JsonsWouldNotBeEqual()
+
+    [TestCaseSource(nameof(GetBothSynchronousAndAsynchronousOptions))]
+    public void Normalize_CollectionOrderIsImportant_JsonsWouldNotBeEqual(NormalizerOptions opt)
     {
         // Arrange
-        var opt = new NormalizerOptions
-        {
-            ArrayOptions = new ArrayNormalizationOptions
-            {
-                DefaultArrayOrderCompareBehaviour = ArrayOrderEnum.Ordered
-            }
-        };
-        
+        opt.ArrayOptions = new ArrayNormalizationOptions { DefaultCollectionOrderSpec = CollectionOrderSpec.Ordered };
+
         var arr1 = new[] { 3, 2, 1 };
         var arr2 = new[] { 4, 5, 6 };
         var json1 = new JObject
@@ -76,17 +77,19 @@ public class JsonNormalizerTests
             ["a"] = JArray.FromObject(arr1.Reverse()),
             ["b"] = JArray.FromObject(arr2.Reverse())
         };
-        
+
         // Act
-        var normalized1 = JsonNormalizer.Normalize(json1, opt);
-        var normalized2 = JsonNormalizer.Normalize(json2, opt);
-        
+        JsonNormalizer.Normalize(json1, opt);
+        JsonNormalizer.Normalize(json2, opt);
+
         // Assert
-        Assert.That(normalized1, !Is.EqualTo(normalized2));
+        Assert.That(json1, !Is.EqualTo(json2));
     }
-        
-    [Test]
-    public void Normalize_OrderedArrayPathOverrideWhileDefaultIsUnordered_ShouldKeepArrayOrderOnlyForThoseSpecifiedInOverride()
+
+    [TestCaseSource(nameof(GetBothSynchronousAndAsynchronousOptions))]
+    public void
+        Normalize_OrderedCollectionPathsWhileDefaultIsUnordered_ShouldKeepCollectionsOrderOnlyForThoseSpecifiedInOverride(
+            NormalizerOptions opt)
     {
         // Arrange
         var arr1 = new[] { 3, 2, 1 };
@@ -100,35 +103,34 @@ public class JsonNormalizerTests
                 d = JArray.FromObject(arr2)
             })
         };
-        
-        var opt = new NormalizerOptions
+
+        opt.ArrayOptions = new ArrayNormalizationOptions
         {
-            ArrayOptions = new ArrayNormalizationOptions
-            {
-                DefaultArrayOrderCompareBehaviour = ArrayOrderEnum.Unordered,
-                OrderedArrayPaths = new() {"c.d"}
-            }
+            DefaultCollectionOrderSpec = CollectionOrderSpec.Unordered,
+            OrderedCollectionPaths = new() { "c.d" }
         };
 
         var comparer = opt.ArrayOptions.ArrayItemsEqualityComparer;
         var arr1Unordered = JArray.FromObject(arr1.OrderBy(i => comparer.GetHashCode(i)).ToArray());
         var arr2Unordered = JArray.FromObject(arr2.OrderBy(i => comparer.GetHashCode(i)).ToArray());
         var arr2Ordered = JArray.FromObject(arr2);
-        
+
         // Act
-        var normalized = JsonNormalizer.Normalize(json, opt);
+        JsonNormalizer.Normalize(json, opt);
 
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.That(normalized["a"], Is.EquivalentTo(arr1Unordered));
-            Assert.That(normalized["b"], Is.EquivalentTo(arr2Unordered));
-            Assert.That(normalized["c"]!["d"], Is.EquivalentTo(arr2Ordered));
+            Assert.That(json["a"], Is.EquivalentTo(arr1Unordered));
+            Assert.That(json["b"], Is.EquivalentTo(arr2Unordered));
+            Assert.That(json["c"]!["d"], Is.EquivalentTo(arr2Ordered));
         });
     }
-    
-    [Test]
-    public void Normalize_UnorderedArrayPathOverrideWhileDefaultIsOrdered_ShouldKeepArrayOrderOnlyForAllExceptThoseSpecifiedInOverride()
+
+    [TestCaseSource(nameof(GetBothSynchronousAndAsynchronousOptions))]
+    public void
+        Normalize_UUnorderedCollectionPathsWhileDefaultIsOrdered_ShouldKeepCollectionOrderOnlyForAllExceptThoseSpecifiedInOverride(
+            NormalizerOptions opt)
     {
         // Arrange
         var arr1 = new[] { 3, 2, 1 };
@@ -142,108 +144,121 @@ public class JsonNormalizerTests
                 d = JArray.FromObject(arr2)
             })
         };
-        
-        var opt = new NormalizerOptions
+
+        opt.ArrayOptions = new ArrayNormalizationOptions
         {
-            ArrayOptions = new ArrayNormalizationOptions
-            {
-                DefaultArrayOrderCompareBehaviour = ArrayOrderEnum.Ordered,
-                UnOrdedArrayPaths = new() {"c.d"}
-            }
+            DefaultCollectionOrderSpec = CollectionOrderSpec.Ordered,
+            UnorderedCollectionPaths = new() { "c.d" }
         };
 
         var comparer = opt.ArrayOptions.ArrayItemsEqualityComparer;
         var arr1Ordered = JArray.FromObject(arr1);
         var arr2Ordered = JArray.FromObject(arr2);
         var arr2Unordered = JArray.FromObject(arr2.OrderBy(i => comparer.GetHashCode(i)).ToArray());
-        
+
         // Act
-        var normalized = JsonNormalizer.Normalize(json, opt);
+        JsonNormalizer.Normalize(json, opt);
 
         // Assert
         Assert.Multiple(() =>
         {
-            Assert.That(normalized["a"], Is.EquivalentTo(arr1Ordered));
-            Assert.That(normalized["b"], Is.EquivalentTo(arr2Ordered));
-            Assert.That(normalized["c"]["d"], Is.EquivalentTo(arr2Unordered));
+            Assert.That(json["a"], Is.EquivalentTo(arr1Ordered));
+            Assert.That(json["b"], Is.EquivalentTo(arr2Ordered));
+            Assert.That(json["c"]!["d"], Is.EquivalentTo(arr2Unordered));
         });
     }
-    
+
     // Test for cases where the paths doesn't exists in the json
-    
-    [Test]
-    public void Normalize_WhenDefaultIsOrderedAndOverridePathPointToNonExistentArray_ShouldReturnSameJson()
+
+    [TestCaseSource(nameof(GetBothSynchronousAndAsynchronousOptions))]
+    public void Normalize_WhenDefaultIsOrderedAndOverridePathPointToNonExistentCollection_ShouldReturnSameJson(
+        NormalizerOptions opt)
     {
         // Arrange
-        var opt = new NormalizerOptions
+        opt.ArrayOptions = new()
         {
-            ArrayOptions = new()
-            {
-                DefaultArrayOrderCompareBehaviour = ArrayOrderEnum.Ordered,
-                UnOrdedArrayPaths = new() { "c" }
-            }
+            DefaultCollectionOrderSpec = CollectionOrderSpec.Ordered,
+            UnorderedCollectionPaths = new() { "c" }
         };
-        
+
         var json = new JObject
         {
             ["a"] = JArray.FromObject(new[] { 1, 2, 3 }),
             ["b"] = JArray.FromObject(new[] { 6, 5, 4 })
         };
-        
+
         // Act
-        var normalized = JsonNormalizer.Normalize(json, opt);
+        var normalized = JsonNormalizer.Normalize(json.ToString(Formatting.None), opt);
 
         // Assert
         Assert.That(normalized, Is.EquivalentTo(json));
     }
-    
-    [TestCase(true)]
-    [TestCase(false)]
-    public void Normalize_TwoComplexJsons_ShouldBeEquivalent(bool shouldOrderProperties)
+
+    [TestCaseSource(nameof(GetBothSynchronousAndAsynchronousOptionsWithShouldOrderProperties), new object[] {true})]
+    [TestCaseSource(nameof(GetBothSynchronousAndAsynchronousOptionsWithShouldOrderProperties), new object[] {false})]
+    public void Normalize_TwoComplexJsons_ShouldBeEquivalent(NormalizerOptions opt)
     {
         // Arrange
-        var opt = new NormalizerOptions { SortObjectsProperties = shouldOrderProperties };
         var json1 = JObject.Parse(File.ReadAllText("TestData/ComplexJson.json"));
         var json2 = JObject.Parse(File.ReadAllText("TestData/ComplexJson-Scrambled.json"));
         var comparer = new JTokenEqualityComparer();
-        
+        Assert.That(comparer.Equals(json1, json2), Is.False);
+
         // Act
-        var normalized1 = JsonNormalizer.Normalize(json1, opt);
-        var normalized2 = JsonNormalizer.Normalize(json2, opt);
+        JsonNormalizer.Normalize(json1, opt);
+        JsonNormalizer.Normalize(json2, opt);
 
         // Assert
-        Assert.That(comparer.Equals(normalized1, normalized2), Is.True);
+        Assert.That(comparer.Equals(json1, json2), Is.True);
     }
-    
-    [Test]
-    public void Normalize_ToStringCompare_ShouldBeEquivalent()
+
+    [TestCaseSource(nameof(GetBothSynchronousAndAsynchronousOptions))]
+    public void Normalize_ToStringCompare_ShouldBeEquivalent(NormalizerOptions opt)
     {
         // Arrange
-        var opt = new NormalizerOptions { SortObjectsProperties = true };
+        opt.SortObjectsProperties = true;
         var json1 = JObject.Parse(File.ReadAllText("TestData/ComplexJson.json"));
         var json2 = JObject.Parse(File.ReadAllText("TestData/ComplexJson-Scrambled.json"));
-        
+
         // Act
-        var normalized1 = JsonNormalizer.Normalize(json1, opt).ToString();
-        var normalized2 = JsonNormalizer.Normalize(json2, opt).ToString();
+        JsonNormalizer.Normalize(json1, opt);
+        JsonNormalizer.Normalize(json2, opt);
+        var normalized1 = json1.ToString(Formatting.None);
+        var normalized2 = json2.ToString(Formatting.None);
 
         // Assert
         Assert.That(normalized1, Is.EqualTo(normalized2));
     }
-    
-    [Test]
-    public void Normalize_PropertiesSorted_CompareUsingEquals_ShouldBeEquivalent()
+
+    [TestCaseSource(nameof(GetBothSynchronousAndAsynchronousOptions))]
+    public void Normalize_PropertiesSorted_CompareUsingEquals_ShouldBeEquivalent(NormalizerOptions opt )
     {
         // Arrange
-        var opt = new NormalizerOptions { SortObjectsProperties = true };
+        opt.SortObjectsProperties = true;
         var json1 = JObject.Parse(File.ReadAllText("TestData/ComplexJson.json"));
         var json2 = JObject.Parse(File.ReadAllText("TestData/ComplexJson-Scrambled.json"));
+        Assert.That(json1, !Is.EqualTo(json2));
         
         // Act
-        var normalized1 = JsonNormalizer.Normalize(json1, opt);
-        var normalized2 = JsonNormalizer.Normalize(json2, opt);
+        JsonNormalizer.Normalize(json1, opt);
+        JsonNormalizer.Normalize(json2, opt);
 
         // Assert
-        Assert.That(normalized1, Is.EqualTo(normalized2));
+        Assert.That(json1, Is.EqualTo(json2));
+    }
+
+    public static IEnumerable<NormalizerOptions> GetBothSynchronousAndAsynchronousOptions()
+    {
+        yield return new NormalizerOptions { ShouldParallelizeProcess = false };
+        yield return new NormalizerOptions { ShouldParallelizeProcess = true };
+    }
+    
+    public static IEnumerable<NormalizerOptions> GetBothSynchronousAndAsynchronousOptionsWithShouldOrderProperties(
+        bool? shouldSortProperties = null)
+    {
+        var defaultOptions = new NormalizerOptions();
+        var sortProperties = shouldSortProperties ?? defaultOptions.SortObjectsProperties;
+        return GetBothSynchronousAndAsynchronousOptions()
+            .Do(opt => opt.SortObjectsProperties = sortProperties);
     }
 }
