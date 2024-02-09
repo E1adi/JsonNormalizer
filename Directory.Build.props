@@ -3,7 +3,7 @@
     <PropertyGroup>
         <Product>JsonNormalize</Product>
         <RootNamespace>JsonNormalize</RootNamespace>
-        <VersionPrefix>0.2.0</VersionPrefix>
+        <VersionPrefix>0.2.1</VersionPrefix>
         <Authors>Elad Israel</Authors>
     </PropertyGroup>
     <PropertyGroup>
@@ -16,13 +16,13 @@
     </PropertyGroup>
     <PropertyGroup Label="Packing">
         <Description>            
-            JSON data representation has some limitations that in some cases might make it difficult to compare JSON documents.
-            For once, the order of the properties in the JSON document is not guaranteed.
-            In addition to that, since the only collection representation of JSON is an array, you might be using it to
-            represent a set of objects which is order agnostic.
-            By Normalizing JSON objects, you can overcome these limitations and compare JSON documents in a more robust way.
-            With the correct Normalization settings, you can even compare the string representation of the JSON documents
-            for equality (Just for the fun of it ofc🤓).
+JSON data representation has some limitations that in some cases might make it difficult to compare JSON documents.
+For once, the order of the properties in the JSON document is not guaranteed.
+In addition to that, since the only collection representation of JSON is an array, you might be using it to
+represent a set of objects which is order agnostic.
+By Normalizing JSON objects, you can overcome these limitations and compare JSON documents in a more robust way.
+With the correct Normalization settings, you can even compare the string representation of the JSON documents
+for equality (Just for the fun of it ofc🤓).
         </Description>
         <PackageProjectUrl>https://github.com/E1adi/JsonNormalizer</PackageProjectUrl>
         <PackageTags>Json Normalizer Newtonsoft Equals</PackageTags>
