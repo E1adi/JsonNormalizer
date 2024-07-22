@@ -39,7 +39,9 @@ public static class JsonNormalizer
         if (!opt.Validate())
             throw new ArgumentException($"{nameof(NormalizerOptions)} is invalid");
         
-        return NormalizeReq(tok!, opt, RootPath);
+        return opt.ShouldParallelizeProcess ? 
+            NormalizeReqParallelly(tok, opt, RootPath) : 
+            NormalizeReq(tok, opt, RootPath);
     }
 
     /// <summary>
@@ -65,8 +67,11 @@ public static class JsonNormalizer
         
         if (!opt.Validate())
             throw new ArgumentException($"{nameof(NormalizerOptions)} is invalid");
-	
-        NormalizeReq(tok, opt, RootPath);
+
+        if (opt.ShouldParallelizeProcess) 
+            NormalizeReqParallelly(tok, opt, RootPath);
+        else 
+            NormalizeReq(tok, opt, RootPath);
     }
     
     private static bool TryParse(string json, out JToken? token)
@@ -88,12 +93,23 @@ public static class JsonNormalizer
         var isAsync = opt.ShouldParallelizeProcess;
         return tok switch
         {
-            JArray arr => isAsync ? NormalizeArrayAsync(arr, opt, path) : NormalizeArray(arr, opt, path),
-            JObject obj => isAsync ? NormalizeObjectAsync(obj, opt, path) : NormalizeObject(obj, opt, path),
+            JArray arr => NormalizeArray(arr, opt, path),
+            JObject obj => NormalizeObject(obj, opt, path),
             _ => tok
         };
     }
-
+    
+    private static JToken NormalizeReqParallelly(JToken tok, NormalizerOptions opt, string path)
+    {
+        return tok switch
+        {
+            JArray arr =>  NormalizeArrayAsync(arr, opt, path),
+            JObject obj => NormalizeObjectAsync(obj, opt, path),
+            _ => tok
+        };
+    }
+    
+    
     private static JObject NormalizeObject(JObject obj, NormalizerOptions opt, string path)
     {
         var props = GetOrderedProperties(obj, opt);
@@ -112,7 +128,7 @@ public static class JsonNormalizer
     {
         var props = GetOrderedProperties(obj, opt);
 
-        Parallel.ForEach(props, prop => NormalizeReq(prop.Value, opt, $"{path}.{prop.Name}"));
+        Parallel.ForEach(props, prop => NormalizeReqParallelly(prop.Value, opt, $"{path}.{prop.Name}"));
         
         foreach (var prop in props)
         {
@@ -146,7 +162,7 @@ public static class JsonNormalizer
     {
         var items = GetOrderedItemsWithInitialIndex(arr, opt, path);
             
-        Parallel.ForEach(items, tpl => NormalizeReq(tpl.Item, opt, $"{path}[{tpl.Index}]"));
+        Parallel.ForEach(items, tpl => NormalizeReqParallelly(tpl.Item, opt, $"{path}[{tpl.Index}]"));
         
         foreach (var (_, item) in items)
         {
@@ -166,11 +182,14 @@ public static class JsonNormalizer
     private static bool ShouldKeepOrder(string path, NormalizerOptions opt)
     {
         var trimmedPath = path[(RootPath.Length + 1)..];
-        bool? isOrdered = null;
-        if (opt.ArrayOptions.OrderedCollectionPaths.Contains(trimmedPath)) isOrdered = true;
-        else if (opt.ArrayOptions.UnorderedCollectionPaths.Contains(trimmedPath)) isOrdered = false;
-        isOrdered ??= opt.ArrayOptions.DefaultCollectionOrderSpec == CollectionOrderSpec.Ordered;
-            
-        return isOrdered.Value;
+        var defaultBehavior = opt.ArrayOptions.DefaultCollectionOrderSpec;
+        return defaultBehavior switch
+        {
+            CollectionOrderSpec.Ordered => !opt.ArrayOptions.UnorderedCollectionPathMatchers.Value
+                .Any(m => m.Matches(trimmedPath)),
+            CollectionOrderSpec.Unordered => opt.ArrayOptions.OrderedCollectionPathMatchers.Value
+                .Any(m => m.Matches(trimmedPath)),
+            _ => throw new ArgumentOutOfRangeException()
+        };
     }
 }

@@ -3,7 +3,7 @@
     <PropertyGroup>
         <Product>JsonNormalize</Product>
         <RootNamespace>JsonNormalize</RootNamespace>
-        <VersionPrefix>0.2.1</VersionPrefix>
+        <VersionPrefix>0.3.0</VersionPrefix>
         <Authors>Elad Israel</Authors>
     </PropertyGroup>
     <PropertyGroup>

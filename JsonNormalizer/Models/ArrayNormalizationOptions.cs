@@ -33,10 +33,16 @@ public class ArrayNormalizationOptions
     public HashSet<string> UnorderedCollectionPaths { get; init; } = new();
 
     
+    internal Lazy<IEnumerable<WildcardPathMatcher>> OrderedCollectionPathMatchers => new(() =>
+        OrderedCollectionPaths.Select(path => new WildcardPathMatcher(path)));
+    
+    internal Lazy<IEnumerable<WildcardPathMatcher>> UnorderedCollectionPathMatchers => new(() =>
+        UnorderedCollectionPaths.Select(path => new WildcardPathMatcher(path)));
+    
     /// <summary>
     ///  Validates the setting.
     /// </summary>
-    /// <returns>whether or not the settings are valid.</returns>
+    /// <returns> Whether the settings are valid.</returns>
     public bool Validate() =>
         ArrayItemsEqualityComparer != null &&
         OrderedCollectionPaths != null &&
