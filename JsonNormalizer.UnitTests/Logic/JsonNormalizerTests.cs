@@ -107,7 +107,7 @@ public class JsonNormalizerTests
         opt.ArrayOptions = new ArrayNormalizationOptions
         {
             DefaultCollectionOrderSpec = CollectionOrderSpec.Unordered,
-            OrderedCollectionPaths = new() { "c.d" }
+            OrderedCollectionPaths = new() { "c.*" }
         };
 
         var comparer = opt.ArrayOptions.ArrayItemsEqualityComparer;
@@ -129,7 +129,7 @@ public class JsonNormalizerTests
 
     [TestCaseSource(nameof(GetBothSynchronousAndAsynchronousOptions))]
     public void
-        Normalize_UUnorderedCollectionPathsWhileDefaultIsOrdered_ShouldKeepCollectionOrderOnlyForAllExceptThoseSpecifiedInOverride(
+        Normalize_UnorderedCollectionPathsWhileDefaultIsOrdered_ShouldKeepCollectionOrderOnlyForAllExceptThoseSpecifiedInOverride(
             NormalizerOptions opt)
     {
         // Arrange
@@ -148,7 +148,7 @@ public class JsonNormalizerTests
         opt.ArrayOptions = new ArrayNormalizationOptions
         {
             DefaultCollectionOrderSpec = CollectionOrderSpec.Ordered,
-            UnorderedCollectionPaths = new() { "c.d" }
+            UnorderedCollectionPaths = new() { "c.*" }
         };
 
         var comparer = opt.ArrayOptions.ArrayItemsEqualityComparer;
